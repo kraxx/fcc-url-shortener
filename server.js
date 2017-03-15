@@ -34,10 +34,12 @@ app.get('/new/:url', function(req,res){
         console.log('yeyeeyeye');
         res.send('somthing GOOD');
         db.close();
-    })
-});
+      }
+    });
+  });
 
 
-app.listen(app.get('port'), function(){-
+
+app.listen(app.get('port'), function(){
   console.log('URL shortener listening on port ' + app.get('port'));
 });
