@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 var mongo = require('mongodb').MongoClient();
-var uri = 'mongodb://cooldude:1234@ds131480.mlab.com:31480/heroku_080807zm' || process.env.MONGOLAB_URI;
+var uri = process.env.MONGOLAB_URI || 'mongodb://cooldude:1234@ds131480.mlab.com:31480/heroku_080807zm';
 
 console.log(process.env)
 
@@ -24,9 +24,16 @@ app.get('/:url', function(req,res){
 app.get('/new/:url', function(req,res){
   console.log('connecting to mongo');
     mongo.connect(uri, function(err,db){
-      if (err) throw new Error('something done goofed');
-      db.create('urls');
-      console.log('yeyeeyeye');
+      if (err) {
+        throw new Error('something done goofed');
+        res.send('something bad');
+      }
+      else {
+        // db.create('urls');
+        console.log(req.params.url);
+        console.log('yeyeeyeye');
+        res.send('somthing GOOD');
+        db.close();
     })
 });
 
