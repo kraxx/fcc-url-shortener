@@ -1,9 +1,11 @@
 var express = require('express');
 var app = express();
 var mongo = require('mongodb').MongoClient();
-var uri = 'mongodb://cooldude:1234@ds131480.mlab.com:31480/heroku_080807zm';
+var uri = 'mongodb://cooldude:1234@ds131480.mlab.com:31480/heroku_080807zm' || process.env.MONGOLAB_URI;
 
-app.set('port', process.env.PORT || 8080);
+console.log(process.env)
+
+app.set('port', process.env.PORT || 5000);
 
 app.get('/', function(req,res){
   res.send('Hey ho welcome to the index-o');
@@ -22,12 +24,10 @@ app.get('/:url', function(req,res){
 app.get('/new/:url', function(req,res){
   console.log('connecting to mongo');
     mongo.connect(uri, function(err,db){
-      if (err) throw err;
-      res.send('its working!');
+      if (err) throw new Error('something done goofed');
+      db.create('urls');
       console.log('yeyeeyeye');
     })
-
-
 });
 
 
