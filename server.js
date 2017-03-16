@@ -8,31 +8,45 @@ app.get('/', function(req,res){
   res.send('Hey ho welcome to the index-o');
 });
 
-app.get('/new', function(req,res){
-  console.log('connected to /new/');
-  res.send('Add a URL after /new/');
-});
-
 app.get('/:num', function(req,res){
   var num = req.params.num;
-  mongo.connect(uri, function(err,db){
-    if (err) throw new Error('something done goofed whilst connecting');
-    var collection = db.collection('urls');
-    collection.findOne({ short_url : 'https://kraxx-url-shortener.herokuapp.com/' + num }, function(err,found) {
-      if (err) throw new Error('something done goofed whilst finding');
-      if (found === null) {
-        res.json({'error' : 'Provided number not found in database'});
+  console.log(req.params);
+  console.log('before mongo.connect ', req.params.num);
+  if (num == 'new') res.json({'error' : 'Add a URL after /new/'});
+  else {
+    mongo.connect(uri, function(err,db){
+      console.log('after mongo.connect ', req.params.num);
+      if (err) throw new Error('something done goofed whilst connecting');
+      var collection = db.collection('urls');
+
+      var query = function(db, callback) {
+
+        collection.findOne({ short_url : 'https://kraxx-url-shortener.herokuapp.com/' + num }, { long_url: 1, _id: 0 }, function(err,found) {
+          if (err) throw new Error('something done goofed whilst finding');
+          console.log('found data: ', found);
+          if (found === null) {
+            res.json({'error' : 'Provided number not found in database'});
+          }
+          else {
+            if (found.long_url.charAt(0) == 'w') {
+              console.log('redirecting...');
+              res.redirect(301, 'http://' + found.original_url);
+            }
+            else {
+              console.log('redirecting.....');
+              res.redirect(301, found.original_url);
+            }
+          }
+        })
+
       }
-      else {
-        if (found.long_url.charAt(0) == 'w') {
-           res.redirect(301, 'http://' + found.original_url);
-        }
-        else {
-           res.redirect(301, found.original_url);
-        }
-      }
+
+      query(db, function() {
+         db.close()
+      })
+
     })
-  })
+  }
 });
 
 
@@ -40,15 +54,12 @@ app.get('/new/:url(*)', function(req,res){
   var url = req.params.url;
   if (regex.test(url)){
     mongo.connect(uri, function(err,db){
-      if (err) {
-        throw new Error('something done goofed whilst connecting');
-      }
+      console.log(uri);
+      if (err) throw new Error('something done goofed whilst connecting');
       else {
         var collection = db.collection('urls');
         collection.findOne({ long_url : url }, function(err,found) {
-          if (err) {
-            throw new Error('something done goofed whilst finding')
-          }
+          if (err) throw new Error('something done goofed whilst finding')
           if (found === null) {
             collection.count().then(function(num){
               var newEntry = {
@@ -63,7 +74,6 @@ app.get('/new/:url(*)', function(req,res){
             res.json(found);
           }
         })
-        console.log(uri);
       }
     });
   }
@@ -71,8 +81,6 @@ app.get('/new/:url(*)', function(req,res){
     res.json({'error':'Not a valid URL string, please try again'});
   }
 });
-
-
 
 app.listen(port, function(){
   console.log('URL shortener listening on port ' + port);
