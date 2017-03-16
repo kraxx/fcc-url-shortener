@@ -1,0 +1,18 @@
+h1 {
+    text-align: center;
+    font-size: 3em;
+}
+
+.container {
+    margin: 0 auto;
+    width: 40%;
+}
+
+.box {
+    padding: 0 20px;
+    border: 1px solid black;
+}
+
+.small-text {
+	font-size: 9px;
+}

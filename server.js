@@ -1,4 +1,6 @@
-var app = require('express')();
+//declarations
+var express = require('express');
+var app = express();
 var mongo = require('mongodb').MongoClient;
 var port = process.env.PORT || 5000;
 var uri = process.env.MONGOLAB_URI || 'mongodb://cooldude:1234@ds131480.mlab.com:31480/heroku_080807zm'; //process.env.MONGOLAB_URI is for Heroku
@@ -7,29 +9,28 @@ var regex = new RegExp("(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+app.use(express.static('public'));
+
+//routes
 app.get('/', function(req,res){
   res.render('index');
 });
 
 app.get('/:num', function(req,res){
   var num = req.params.num;
-  console.log(req.params);
-  console.log('before mongo.connect ', num);
   if (num == 'new') res.json({'error' : 'Add a URL after /new/'});
   else {
     mongo.connect(uri, function(err,db){
-      console.log('after mongo.connect ', num);
       if (err) throw new Error('something done goofed whilst connecting');
       var collection = db.collection('urls');
 
-      var query = function(db, callback) {
+      // var query = function(db, callback) {
 
         collection.findOne({ short_url : 'https://kraxx-url-shortener.herokuapp.com/' + num },
           { long_url: 1, _id: 0 },
           function(err,found) {
           if (err) throw new Error('something done goofed whilst finding');
           if (found === null) {
-            console.log('found data should be null: ', found);
             res.json({'error' : 'Provided number not found in database'});
           }
           else {
@@ -39,17 +40,17 @@ app.get('/:num', function(req,res){
               res.redirect(301, 'http://' + found.long_url);
             }
             else {
-              console.log('redirecting.....');
+              console.log('redirecting...');
               res.redirect(301, found.long_url);
             }
           }
         });
 
-      }
+      // }
 
-      query(db, function() {
-         db.close();
-      })
+      // query(db, function() {
+      //    db.close();
+      // })
 
     })
   }
@@ -63,10 +64,12 @@ app.get('/new/:url(*)', function(req,res){
       if (err) throw new Error('something done goofed whilst connecting');
       else {
 
-        var query = function(db,callback) {
+        // var query = function(db,callback) {
 
           var collection = db.collection('urls');
-          collection.findOne({ long_url : url }, function(err,found) {
+          collection.findOne({ long_url : url },
+          { long_url: 1, short_url: 1, _id: 0 },
+           function(err,found) {
             if (err) throw new Error('something done goofed whilst finding')
             if (found === null) {
               collection.count().then(function(num){
@@ -74,8 +77,11 @@ app.get('/new/:url(*)', function(req,res){
                    long_url: url,
                    short_url: "https://kraxx-url-shortener.herokuapp.com/" + (num + 1)
                 };
-              collection.insert([newEntry]);
-              res.json(newEntry);
+              collection.insert(newEntry);
+              res.json({
+                   long_url: url,
+                   short_url: "https://kraxx-url-shortener.herokuapp.com/" + (num + 1)
+                });
               });
             }
             else {
@@ -83,14 +89,13 @@ app.get('/new/:url(*)', function(req,res){
             }
           })
 
-      }
+      // }
 
-      query(db,function() {
-        db.close();
-      })
+      // query(db,function() {
+      //   db.close();
+      // })
 
-
-      }
+    }
     });
   }
   else {

@@ -10,9 +10,20 @@
     <h1>URL Shortening Service</h1>
     <div class='container'>
         <h3>Pass a URL as a parameter, and you should get a JSON object back.</h3>
-        <p>Example usage: </p>
+        <h4>Examples: </h4>
+        <p>Generating a new URL:</p>
         <div class='box'>
-            <p>Hee hoo haa</p>
+            <p>https://kraxx-url-shortener.herokuapp.com/new/www.heroku.com</p>
         </div>
+        <p>...should give you an object as such...</p>
+        <div class='box'>
+            <p>{"long_url":"www.heroku.com","short_url":"https://kraxx-url-shortener.herokuapp.com/9"}</p>
+        </div>
+        <p>...which you can use to redirect yourself to the original URL</p>
+        <div class='box'>
+            <p><a href='https://kraxx-url-shortener.herokuapp.com/9' target='_blank'> https://kraxx-url-shortener.herokuapp.com/9</a></p>
+        </div>
+        <h2>Neat eh?</h2>
+        <p class='small-text'>Though the new URL isn't necessarily shorter...</p>
     </div>
 </body>
