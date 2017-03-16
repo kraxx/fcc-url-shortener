@@ -48,7 +48,7 @@ app.get('/:num', function(req,res){
       }
 
       query(db, function() {
-         db.close()
+         db.close();
       })
 
     })
@@ -62,23 +62,34 @@ app.get('/new/:url(*)', function(req,res){
       console.log(uri);
       if (err) throw new Error('something done goofed whilst connecting');
       else {
-        var collection = db.collection('urls');
-        collection.findOne({ long_url : url }, function(err,found) {
-          if (err) throw new Error('something done goofed whilst finding')
-          if (found === null) {
-            collection.count().then(function(num){
-              var newEntry = {
-                 long_url: url,
-                 short_url: "https://kraxx-url-shortener.herokuapp.com/" + (num + 1)
-              };
-            collection.insert(newEntry);
-            res.json(newEntry);
-            });
-          }
-          else {
-            res.json(found);
-          }
-        })
+
+        var query = function(db,callback) {
+
+          var collection = db.collection('urls');
+          collection.findOne({ long_url : url }, function(err,found) {
+            if (err) throw new Error('something done goofed whilst finding')
+            if (found === null) {
+              collection.count().then(function(num){
+                var newEntry = {
+                   long_url: url,
+                   short_url: "https://kraxx-url-shortener.herokuapp.com/" + (num + 1)
+                };
+              collection.insert([newEntry]);
+              res.json(newEntry);
+              });
+            }
+            else {
+              res.json(found);
+            }
+          })
+
+      }
+
+      query(db,function() {
+        db.close();
+      })
+
+
       }
     });
   }
