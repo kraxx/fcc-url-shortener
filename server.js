@@ -2,42 +2,48 @@ var app = require('express')();
 var mongo = require('mongodb').MongoClient;
 var port = process.env.PORT || 5000;
 var uri = process.env.MONGOLAB_URI || 'mongodb://cooldude:1234@ds131480.mlab.com:31480/heroku_080807zm'; //process.env.MONGOLAB_URI is for Heroku
-var regex = new RegExp("(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})"); // matches viable URL strings. Taken from @diegoperini
+var regex = new RegExp("(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})"); // matches viable URL strings
+
+app.set('view engine', 'ejs');
+app.set('views', 'views');
 
 app.get('/', function(req,res){
-  res.send('Hey ho welcome to the index-o');
+  res.render('index');
 });
 
 app.get('/:num', function(req,res){
   var num = req.params.num;
   console.log(req.params);
-  console.log('before mongo.connect ', req.params.num);
+  console.log('before mongo.connect ', num);
   if (num == 'new') res.json({'error' : 'Add a URL after /new/'});
   else {
     mongo.connect(uri, function(err,db){
-      console.log('after mongo.connect ', req.params.num);
+      console.log('after mongo.connect ', num);
       if (err) throw new Error('something done goofed whilst connecting');
       var collection = db.collection('urls');
 
       var query = function(db, callback) {
 
-        collection.findOne({ short_url : 'https://kraxx-url-shortener.herokuapp.com/' + num }, { long_url: 1, _id: 0 }, function(err,found) {
+        collection.findOne({ short_url : 'https://kraxx-url-shortener.herokuapp.com/' + num },
+          { long_url: 1, _id: 0 },
+          function(err,found) {
           if (err) throw new Error('something done goofed whilst finding');
-          console.log('found data: ', found);
           if (found === null) {
+            console.log('found data should be null: ', found);
             res.json({'error' : 'Provided number not found in database'});
           }
           else {
+            console.log('found data should NOT be null: ', found);
             if (found.long_url.charAt(0) == 'w') {
               console.log('redirecting...');
-              res.redirect(301, 'http://' + found.original_url);
+              res.redirect(301, 'http://' + found.long_url);
             }
             else {
               console.log('redirecting.....');
-              res.redirect(301, found.original_url);
+              res.redirect(301, found.long_url);
             }
           }
-        })
+        });
 
       }
 
@@ -48,7 +54,6 @@ app.get('/:num', function(req,res){
     })
   }
 });
-
 
 app.get('/new/:url(*)', function(req,res){
   var url = req.params.url;
