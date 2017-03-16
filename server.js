@@ -18,10 +18,10 @@ app.get('/:num', function(req,res){
   mongo.connect(uri, function(err,db){
     if (err) throw new Error('something done goofed whilst connecting');
     var collection = db.collection('urls');
-    collection.findOne({ short_url : num }, function(err,found) {
+    collection.findOne({ short_url : 'https://kraxx-url-shortener.herokuapp.com/' + num }, function(err,found) {
       if (err) throw new Error('something done goofed whilst finding');
       if (found === null) {
-        res.json({'error' : 'Provided number is not found in our database'});
+        res.json({'error' : 'Provided number not found in database'});
       }
       else {
         if (found.long_url.charAt(0) == 'w') {
@@ -64,7 +64,6 @@ app.get('/new/:url(*)', function(req,res){
           }
         })
         console.log(uri);
-        db.close();
       }
     });
   }
